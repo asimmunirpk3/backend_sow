@@ -128,6 +128,8 @@ This project is licensed under the **ISC License**.
 ### 📧 Need Help?
 
 Feel free to open an **Issue** or reach out for support! 🚀
+Authors
+https://github.com/Subhankhalid1
 
 ---
 
