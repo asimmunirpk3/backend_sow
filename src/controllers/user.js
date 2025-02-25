@@ -7,8 +7,9 @@ import {
 } from '../services/user.js';
 import { sendMail } from '../utils/sendEmail.js';
 import excludeitems from '../utils/exclude.js';
-
+/* eslint-disable no-undef */
 const JWTPHRASE = process.env.JWTPHRASE;
+
 export const register = async (req, res) => {
   try {
     const { email, username } = req.body;

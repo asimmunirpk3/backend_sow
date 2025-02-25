@@ -8,7 +8,9 @@ const auth = (req, res, next) => {
 
     const token = req.headers.authorization.split(' ');
     if (token.length >= 2) {
+      /* eslint-disable no-undef */
       const decodedata = jwt.verify(token[1], process.env.JWTPHRASE);
+
       if (decodedata?.id) {
         req.userId = decodedata?.id;
         req.email = decodedata?.email;

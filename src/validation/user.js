@@ -10,7 +10,7 @@ const userValidation = async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
   };
-
+  console.log('ss', payload);
   const { error } = validation.validate(payload);
   if (error) {
     res.status(406);

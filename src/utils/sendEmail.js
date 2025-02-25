@@ -1,28 +1,23 @@
 import nodemailer from 'nodemailer';
 
 export const sendMail = async (subject, content, email, type = 'TEXT') => {
-  var transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
+      /* eslint-disable no-undef */
       user: process.env.SENDEREMAIL,
       pass: process.env.EMAILPASSWORD,
     },
   });
-  if (type == 'HTML') {
-    var mailOptions = {
-      from: process.env.SENDEREMAIL,
-      to: email,
-      subject: subject,
-      html: content,
-    };
-  } else {
-    var mailOptions = {
-      from: process.env.SENDEREMAIL,
-      to: email,
-      subject: subject,
-      text: content,
-    };
-  }
+
+  const mailOptions = {
+    /* eslint-disable no-undef */
+    from: process.env.SENDEREMAIL,
+
+    to: email,
+    subject: subject,
+    ...(type === 'HTML' ? { html: content } : { text: content }),
+  };
 
   return await transporter.sendMail(mailOptions);
 };
