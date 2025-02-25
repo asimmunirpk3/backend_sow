@@ -1,8 +1,8 @@
 import Joi from 'joi';
 
-const validation = Joi.object ({
+const validation = Joi.object({
   email: Joi.string().required(),
-  password: Joi.string ().required(),
+  password: Joi.string().required(),
 });
 
 const userValidation = async (req, res, next) => {
@@ -11,14 +11,14 @@ const userValidation = async (req, res, next) => {
     password: req.body.password,
   };
 
-  const {error} = validation.validate (payload);
+  const { error } = validation.validate(payload);
   if (error) {
-    res.status (406);
+    res.status(406);
     return res
-      .status (406)
-      .json ({status: false, message: 'Error in category Data', error});
+      .status(406)
+      .json({ status: false, message: 'Error in category Data', error });
   } else {
-    next ();
+    next();
   }
 };
 export default userValidation;

@@ -1,4 +1,4 @@
-import { userModel } from "../models/user.js";
+import { userModel } from '../models/user.js';
 
 export const checkUserByEmailData = async (email) => {
   try {
@@ -6,7 +6,7 @@ export const checkUserByEmailData = async (email) => {
       email: email,
     });
   } catch (error) {
-    console.log("error--------------------->", error);
+    console.log('error--------------------->', error);
     return false;
   }
 };
@@ -17,7 +17,7 @@ export const creatUserData = async (data) => {
 
     return await result.save();
   } catch (error) {
-    console.log("error--------------------->", error);
+    console.log('error--------------------->', error);
     return false;
   }
 };
@@ -26,7 +26,7 @@ export const updateUserPasswordData = async (id, password) => {
   try {
     return await userModel.findByIdAndUpdate(id, { password: password });
   } catch (error) {
-    console.log("error--------------------->", error);
+    console.log('error--------------------->', error);
     return false;
   }
 };

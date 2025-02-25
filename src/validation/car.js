@@ -1,13 +1,12 @@
 import Joi from 'joi';
 
-
-const validation = Joi.object ({
-  name: Joi.string ().required (),
+const validation = Joi.object({
+  name: Joi.string().required(),
   category: Joi.string(),
   color: Joi.string(),
   model: Joi.string(),
   make: Joi.string(),
-  registration:Joi.string(),
+  registration: Joi.string(),
 });
 
 const carValidation = async (req, res, next) => {
@@ -17,18 +16,17 @@ const carValidation = async (req, res, next) => {
     color: req.body.color,
     model: req.body.model,
     make: req.body.make,
-    registration:req.body.registration
+    registration: req.body.registration,
   };
 
-  const {error} = validation.validate (payload);
+  const { error } = validation.validate(payload);
   if (error) {
-    res.status (406);
+    res.status(406);
     return res
-      .status (406)
-      .json ({status: false, message: 'Error in car Data', error});
+      .status(406)
+      .json({ status: false, message: 'Error in car Data', error });
   } else {
-    next ();
+    next();
   }
 };
 export default carValidation;
-
