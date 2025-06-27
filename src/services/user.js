@@ -6,7 +6,6 @@ export const checkUserByEmailData = async (email) => {
       email: email,
     });
   } catch (error) {
-    console.log('error--------------------->', error);
     return false;
   }
 };
@@ -17,16 +16,32 @@ export const creatUserData = async (data) => {
 
     return await result.save();
   } catch (error) {
-    console.log('error--------------------->', error);
     return false;
   }
 };
 
-export const updateUserPasswordData = async (id, password) => {
-  try {
-    return await userModel.findByIdAndUpdate(id, { password: password });
-  } catch (error) {
-    console.log('error--------------------->', error);
-    return false;
-  }
+// export const updateUserPasswordData = async (id, password) => {
+//   try {
+//     return await userModel.findByIdAndUpdate(id, { password: password });
+//   } catch (error) {
+//     return false;
+//   }
+// };
+
+export const getUserData = async (data) => {
+  return {
+    id: data._id,
+    firstName: data?.firstName,
+    lastName: data?.lastName,
+    email: data?.email,
+    phone: data?.phone,
+    role: data?.role,
+    active: data?.active,
+    twoFactorEnabled: data?.twoFactorEnabled,
+    planId: data?.planId,
+    createdAt: data?.createdAt,
+    verified: data?.verified,
+    verifyAt: data?.verifyAt,
+    profilePicture: data?.profilePicture,
+  };
 };

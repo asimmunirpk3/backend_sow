@@ -1,11 +1,19 @@
 import express from 'express';
-import userValidation from '../validation/user.js';
-import { signin, register, changePassword } from '../controllers/user.js';
+import {
+  registerApi,
+  loginApi,
+  logoutApi,
+  getCurrentUserApi,
+  userSettigApi,
+} from '../controllers/user.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/signin', userValidation, signin);
-router.post('/register', register);
-router.post('/changepassword', changePassword);
+router.post('/signin', loginApi);
+router.post('/register', registerApi);
+router.post('/logout', auth, logoutApi);
+router.get('/me', auth, getCurrentUserApi);
+router.post('/setting', auth, userSettigApi);
 
 export default router;

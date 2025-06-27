@@ -1,33 +1,33 @@
 import jwt from 'jsonwebtoken';
+import process from 'process';
 
 const auth = (req, res, next) => {
   try {
-    if (!req.headers.authorization) {
-      res.status(401).json({ message: 'Please provide token' });
+    let token =
+      req?.headers?.authorization || req?.cookies?.token || req?.body?.token;
+
+    if (!token) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Token not found' });
     }
 
-    const token = req.headers.authorization.split(' ');
-    if (token.length >= 2) {
-      /* eslint-disable no-undef */
-      const decodedata = jwt.verify(token[1], process.env.JWTPHRASE);
+    // Remove 'Bearer ' prefix if it exists
+    if (token.startsWith('Bearer ')) {
+      token = token.split(' ')[1];
+    }
 
-      if (decodedata?.id) {
-        req.userId = decodedata?.id;
-        req.email = decodedata?.email;
-        next();
-      } else {
-        res.status(401).json({ res: 'error', message: 'invalid token' });
+    jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'Invalid token' });
       }
-    } else {
-      res.status(401).json({ res: 'error', message: 'invalid token' });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      res: 'error',
-      message: 'error in auth middleware',
+      req.user = decoded;
+      next();
     });
+  } catch (error) {
+    res.status(400).json({ status: 'error', message: error.message });
   }
 };
-
 export default auth;

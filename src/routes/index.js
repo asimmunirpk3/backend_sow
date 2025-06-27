@@ -1,6 +1,6 @@
 import userRoutes from '../routes/user.js';
-import categoryRoute from '../routes/category.js';
-import carRoute from '../routes/car.js';
+import coursesRoutes from '../routes/courses.js'
+
 import express from 'express';
 
 const router = express.Router();
@@ -11,13 +11,9 @@ const defaultRoutes = [
     route: userRoutes,
   },
   {
-    path: '/category',
-    route: categoryRoute,
-  },
-  {
-    path: '/car',
-    route: carRoute,
-  },
+    path: '/courses',
+    route: coursesRoutes,
+  }
 ];
 
 defaultRoutes.forEach((route) => {
