@@ -1,5 +1,6 @@
 import userRoutes from '../routes/user.js';
 import coursesRoutes from '../routes/courses.js'
+import fourmsRoutes from '../routes/forums.js'
 
 import express from 'express';
 
@@ -13,6 +14,10 @@ const defaultRoutes = [
   {
     path: '/courses',
     route: coursesRoutes,
+  },
+  {
+    path:'/formus',
+    route: fourmsRoutes
   }
 ];
 

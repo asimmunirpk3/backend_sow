@@ -23,6 +23,7 @@ app.get('/', (req, res) => {
 });
 /* eslint-disable no-undef */
 const CONNECTION_URL = process.env.CONNECTION_URL;
+console.log("26",CONNECTION_URL)
 const PORT = process.env.PORT || 3000;
 
 mongoose

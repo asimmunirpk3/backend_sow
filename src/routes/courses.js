@@ -4,8 +4,11 @@ import {
   getcoursesbyId,
   modulecompleApi,
   studentprogressApi,
-  PostDiscussionsApi,
-  GetDiscussionCourseApi,
+  CreateDiscussionApi,
+  CreatePostApi,
+  AddCommentApi,
+  ToggleLikeApi,
+  GetDiscussionsApi,
 } from '../controllers/courses.js';
 
 const router = express.Router();
@@ -15,7 +18,11 @@ router.get('/course/:id', getcoursesbyId);
 router.post('/course/:id/module/:moduleId/complete', modulecompleApi);
 router.post('/course/student/progress', studentprogressApi);
 
-router.post('/course/:id/discussions', PostDiscussionsApi);
-router.get('/course/:id/discussions', GetDiscussionCourseApi);
+router.post('/course/:id/discussions', CreateDiscussionApi);
+router.post('/discussions/:discussionId/posts',CreatePostApi)
+router.post('/discussions/:discussionId/comments', AddCommentApi);
+router.put('/discussions/:discussionId/posts/:postId/like', ToggleLikeApi)
+router.get('/api/courses/:id/discussions', GetDiscussionsApi)
+
 
 export default router;

@@ -224,15 +224,270 @@ export const studentprogressApi =  async (req, res) => {
   }
 };
 
-
-export const GetDiscussionCourseApi = async (req, res) => {
+// POST - Create a new discussion topic
+export const CreateDiscussionApi = async (req, res) => {
   try {
-    const discussions = await DiscussionModel.find({ courseId: req.params.id })
-      .sort({ createdAt: -1 });
+    const { id: courseId } = req.params;
+    const { title, description } = req.body;
+    const userId = req.user?.id; // Assuming you have auth middleware
+
+    // Validation
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and description are required'
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const discussion = new DiscussionModel({
+      courseId,
+      title: title.trim(),
+      description: description.trim(),
+      createdBy: userId,
+      posts: []
+    });
+
+    await discussion.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Discussion created successfully',
+      data: discussion
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error creating discussion',
+      error: error.message
+    });
+  }
+};
+
+// POST - Create a new post in a discussion
+export const CreatePostApi = async (req, res) => {
+  try {
+    const { discussionId } = req.params;
+    const { content } = req.body;
+    const userId = req.user?.id;
+    const username = req.user?.username || req.user?.name; // Adjust based on your user model
+
+    // Validation
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Post content is required'
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username not found in user profile'
+      });
+    }
+
+    // Check if discussion exists
+    const discussion = await DiscussionModel.findById(discussionId);
+    if (!discussion) {
+      return res.status(404).json({
+        success: false,
+        message: 'Discussion not found'
+      });
+    }
+
+    // Create new post object
+    const newPost = {
+      userId,
+      username,
+      content: content.trim(),
+      timestamp: new Date(),
+      likes: 0,
+      likedBy: [],
+      replies: []
+    };
+
+    // Add post to discussion
+    discussion.posts.push(newPost);
+    await discussion.save();
+
+    // Get the created post (last item in the array)
+    const createdPost = discussion.posts[discussion.posts.length - 1];
+
+    res.status(201).json({
+      success: true,
+      message: 'Post created successfully',
+      data: {
+        discussionId: discussion._id,
+        post: createdPost
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error creating post',
+      error: error.message
+    });
+  }
+};
+
+// POST - Add a comment/post to a discussion
+export const AddCommentApi = async (req, res) => {
+  try {
+    const { discussionId } = req.params;
+    const { content } = req.body;
+    const userId = req.user?.id;
+    const username = req.user?.username;
+
+    // Validation
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content is required'
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const discussion = await DiscussionModel.findById(discussionId);
+    
+    if (!discussion) {
+      return res.status(404).json({
+        success: false,
+        message: 'Discussion not found'
+      });
+    }
+
+    const newPost = {
+      userId,
+      username,
+      content: content.trim(),
+      timestamp: new Date(),
+      likes: 0,
+      likedBy: []
+    };
+
+    discussion.posts.push(newPost);
+    await discussion.save();
+
+    // Return the newly created post
+    const createdPost = discussion.posts[discussion.posts.length - 1];
+
+    res.status(201).json({
+      success: true,
+      message: 'Comment added successfully',
+      data: createdPost
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error adding comment',
+      error: error.message
+    });
+  }
+};
+
+// PUT - Like/Unlike a post
+export const ToggleLikeApi = async (req, res) => {
+  try {
+    const { discussionId, postId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const discussion = await DiscussionModel.findById(discussionId);
+    
+    if (!discussion) {
+      return res.status(404).json({
+        success: false,
+        message: 'Discussion not found'
+      });
+    }
+
+    const post = discussion.posts.id(postId);
+    
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
+
+    const hasLiked = post.likedBy.includes(userId);
+    
+    if (hasLiked) {
+      // Unlike
+      post.likedBy.pull(userId);
+      post.likes = Math.max(0, post.likes - 1);
+    } else {
+      // Like
+      post.likedBy.push(userId);
+      post.likes += 1;
+    }
+
+    await discussion.save();
 
     res.json({
       success: true,
-      data: discussions
+      message: hasLiked ? 'Post unliked' : 'Post liked',
+      data: {
+        postId,
+        likes: post.likes,
+        hasLiked: !hasLiked
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error toggling like',
+      error: error.message
+    });
+  }
+};
+
+// GET - Fetch all discussions for a course
+export const GetDiscussionsApi = async (req, res) => {
+  try {
+    const { id: courseId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const discussions = await DiscussionModel.find({ courseId })
+      .populate('posts.userId', 'username avatar')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    res.json({
+      success: true,
+      data: discussions,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: await DiscussionModel.countDocuments({ courseId })
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -243,53 +498,4 @@ export const GetDiscussionCourseApi = async (req, res) => {
   }
 };
 
-export const PostDiscussionsApi = async (req, res) => {
-  try {
-    const { userId, username, content, title, description } = req.body;
-
-    let discussion;
-    
-    if (title && description) {
-      discussion = new DiscussionModel({
-        courseId: req.params.id,
-        title,
-        description,
-        posts: []
-      });
-    
-    } else {
-      discussion = await DiscussionModel.findOne({ courseId: req.params.id });
-      
-      if (!discussion) {
-        discussion = new DiscussionModel({
-          courseId: req.params.id,
-          title: 'General Discussion',
-          description: 'Course discussion forum',
-          posts: []
-        });
-      }
-      
-      discussion.posts.push({
-        userId,
-        username,
-        content,
-        timestamp: new Date()
-      });
-    }
-    
-    await discussion.save();
-
-    res.json({
-      success: true,
-      message: 'Discussion post created successfully',
-      data: discussion
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error creating discussion post',
-      error: error.message
-    });
-  }
-};
 
