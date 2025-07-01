@@ -20,7 +20,6 @@ const discussionSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
   },
   posts: [{
     userId: {
@@ -28,7 +27,7 @@ const discussionSchema = new mongoose.Schema({
       ref: 'User',
       required: true
     },
-    username: {
+    firstName: {
       type: String,
       required: true
     },
@@ -55,7 +54,7 @@ const discussionSchema = new mongoose.Schema({
         ref: 'User',
         required: true
       },
-      username: String,
+      firstName: String,
       content: String,
       timestamp: {
         type: Date,
