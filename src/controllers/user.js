@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import {  getUserData } from '../services/user.js';
+import { getUserData } from '../services/user.js';
 import { userModel } from '../models/user.js';
 import { createSecretToken } from '../utils/SecretToken.js';
 
@@ -7,7 +7,7 @@ export const registerApi = async (req, res) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
 
-    if (!email || !lastName  ||!firstName || !password || !confirmPassword) {
+    if (!email || !lastName || !firstName || !password || !confirmPassword) {
       return res
         .status(400)
         .json({ status: 'error', message: 'All fields are required' });
@@ -105,7 +105,7 @@ export const logoutApi = async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "lax" 
+      sameSite: "lax"
     });
 
     return res
@@ -122,7 +122,7 @@ export const getCurrentUserApi = async (req, res) => {
   try {
     const user = await userModel
       .findById(req.user.id)
-      .select('-password') 
+      .select('-password')
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -148,9 +148,9 @@ export const userSettigApi = async (req, res) => {
         .json({ status: 'error', message: 'Unauthorized: User ID missing' });
     }
 
-    const { firstName, lastName , password } =
+    const { firstName, lastName, password } =
       req.body;
-      console.log("firdt",firstName)
+    console.log("firdt", firstName)
 
     const updateData = {
       ...(firstName && { firstName }),

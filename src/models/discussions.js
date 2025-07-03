@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const discussionSchema = new mongoose.Schema({
   courseId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course',
+    ref: 'Courses',
     required: true
   },
   title: {
