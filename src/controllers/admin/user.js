@@ -248,59 +248,59 @@ export const getAdminDetailsApi = async (req, res) => {
   }
 };
 
-export const adminSettigApi = async (req, res) => {
-  try {
-    const userId = req.user?.id;
+// export const adminSettigApi = async (req, res) => {
+//   try {
+//     const userId = req.user?.id;
 
-    if (!userId) {
-      return res
-        .status(401)
-        .json({ status: 'error', message: 'Unauthorized: User ID missing' });
-    }
+//     if (!userId) {
+//       return res
+//         .status(401)
+//         .json({ status: 'error', message: 'Unauthorized: User ID missing' });
+//     }
 
-     const user = await userModel
-      .findById(req.user.id)
-      .select('-password')
-    if (user.role !== "admin") {
-      return res.status(404).json({ error: "User role is not admin" })
-    }
+//      const user = await userModel
+//       .findById(req.user.id)
+//       .select('-password')
+//     if (user.role !== "admin") {
+//       return res.status(404).json({ error: "User role is not admin" })
+//     }
 
-    const { firstName, lastName, password } =
-      req.body;
-    console.log("firdt", firstName)
+//     const { firstName, lastName, password } =
+//       req.body;
+//     console.log("firdt", firstName)
 
-    const updateData = {
-      ...(firstName && { firstName }),
-      ...(lastName && { lastName }),
-    };
+//     const updateData = {
+//       ...(firstName && { firstName }),
+//       ...(lastName && { lastName }),
+//     };
 
-    if (password && password !== '********') {
-      updateData.password = password;
-    }
+//     if (password && password !== '********') {
+//       updateData.password = password;
+//     }
 
-    const updatedUser = await userModel
-      .findByIdAndUpdate(userId, updateData, {
-        new: true,
-        runValidators: true,
-      })
-      .select('-password');
+//     const updatedUser = await userModel
+//       .findByIdAndUpdate(userId, updateData, {
+//         new: true,
+//         runValidators: true,
+//       })
+//       .select('-password');
 
-    if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ status: 'error', message: 'User not found' });
-    }
+//     if (!updatedUser) {
+//       return res
+//         .status(404)
+//         .json({ status: 'error', message: 'User not found' });
+//     }
 
-    return res.status(200).json({
-      status: 'success',
-      message: 'user setting updated successfully',
-      data: updatedUser,
-    });
-  } catch (error) {
-    console.error('Update Profile Error:', error);
-    return res.status(500).json({
-      status: 'error',
-      message: 'An error occurred while updating profile',
-    });
-  }
-};
+//     return res.status(200).json({
+//       status: 'success',
+//       message: 'user setting updated successfully',
+//       data: updatedUser,
+//     });
+//   } catch (error) {
+//     console.error('Update Profile Error:', error);
+//     return res.status(500).json({
+//       status: 'error',
+//       message: 'An error occurred while updating profile',
+//     });
+//   }
+// };

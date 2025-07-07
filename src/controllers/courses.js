@@ -2,11 +2,11 @@ import { courseModel } from "../models/courses.js";
 import { DiscussionModel } from "../models/discussions.js";
 import { userModel } from "../models/user.js";
 
- export const courselistingApi = async (req, res) => {
+export const courselistingApi = async (req, res) => {
   try {
-    const { category , keyword } = req.query;
+    const { category, keyword } = req.query;
     let query = {};
-    
+
     if (keyword) {
       query.$or = [
         { course_master_title: { $regex: keyword, $options: 'i' } },
@@ -14,11 +14,11 @@ import { userModel } from "../models/user.js";
         { chat_input: { $regex: keyword, $options: 'i' } }
       ];
     }
-    
+
     if (category) {
       query.chat_input = { $regex: category, $options: 'i' };
     }
-    
+
     const courses = await courseModel.find(query);
     res.json({
       success: true,
@@ -44,7 +44,7 @@ export const getcoursesbyId = async (req, res) => {
         message: 'Course not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: course
@@ -172,7 +172,7 @@ export const modulecompleApi = async (req, res) => {
   }
 };
 
-export const studentprogressApi =  async (req, res) => {
+export const studentprogressApi = async (req, res) => {
   try {
     const { courseId, userId } = req.body;
 
@@ -286,7 +286,7 @@ export const CreatePostApi = async (req, res) => {
       });
     }
 
-    const user = await userModel.findOne({_id: userId})
+    const user = await userModel.findOne({ _id: userId })
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -351,7 +351,7 @@ export const CreatePostApi = async (req, res) => {
 export const AddCommentApi = async (req, res) => {
   try {
     const { discussionId } = req.params; // Need postId to specify which post to reply to
-    const { content ,postId  } = req.body;
+    const { content, postId } = req.body;
     const userId = req.user?.id;
 
     // Validation
@@ -369,7 +369,7 @@ export const AddCommentApi = async (req, res) => {
       });
     }
 
-    const user = await userModel.findOne({_id: userId});
+    const user = await userModel.findOne({ _id: userId });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -447,7 +447,7 @@ export const AddPostApi = async (req, res) => {
       });
     }
 
-    const user = await userModel.findOne({_id: userId});
+    const user = await userModel.findOne({ _id: userId });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -511,7 +511,7 @@ export const ToggleLikeApi = async (req, res) => {
     }
 
     const discussion = await DiscussionModel.findById(discussionId);
-    
+
     if (!discussion) {
       return res.status(404).json({
         success: false,
@@ -520,7 +520,7 @@ export const ToggleLikeApi = async (req, res) => {
     }
 
     const post = discussion.posts.id(postId);
-    
+
     if (!post) {
       return res.status(404).json({
         success: false,
@@ -529,7 +529,7 @@ export const ToggleLikeApi = async (req, res) => {
     }
 
     const hasLiked = post.likedBy.includes(userId);
-    
+
     if (hasLiked) {
       // Unlike
       post.likedBy.pull(userId);
@@ -597,8 +597,8 @@ export const getFeaturedCourses = async (req, res) => {
       {
         $addFields: {
           // Count total courses in the array
-          totalCourses: { 
-            $size: { $ifNull: ["$courses", []] } 
+          totalCourses: {
+            $size: { $ifNull: ["$courses", []] }
           },
           // Count approved courses
           approvedCourses: {
@@ -632,7 +632,7 @@ export const getFeaturedCourses = async (req, res) => {
         }
       },
       {
-        $sort: { 
+        $sort: {
           approvedCourses: -1,  // Sort by number of approved courses
           totalCourses: -1,     // Then by total courses
           approvalRate: -1      // Then by approval rate
@@ -822,38 +822,25 @@ export const getCourseCategories = async (req, res) => {
 export const getStudentDashboard = async (req, res) => {
   try {
     const userId = req.user?.id;
-    console.log("userID", userId)
     if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'User authentication required'
       });
     }
+    console.log("userId", userId)
 
-    // Get enrolled courses for the user
     const enrolledCourses = await courseModel.aggregate([
       {
         $match: {
-          "courses.completed_by.userId": userId
+          "enrolled_users.userId": userId
         }
       },
       {
         $addFields: {
           enrolledCoursesOnly: {
-            $filter: {
-              input: "$courses",
-              cond: {
-                $in: [userId, "$$this.completed_by.userId"]
-              }
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          userProgress: {
             $map: {
-              input: "$enrolledCoursesOnly",
+              input: "$courses",
               as: "course",
               in: {
                 $mergeObjects: [
@@ -864,7 +851,8 @@ export const getStudentDashboard = async (req, res) => {
                         {
                           $filter: {
                             input: "$$course.completed_by",
-                            cond: { $eq: ["$$this.userId", userId] }
+                            as: "progress",
+                            cond: { $eq: ["$$progress.userId", userId] }
                           }
                         },
                         0
@@ -883,12 +871,12 @@ export const getStudentDashboard = async (req, res) => {
           course_master_title: 1,
           course_master_description: 1,
           course_objectives: 1,
-          enrolledCourses: "$userProgress"
+          enrolledCourses: "$enrolledCoursesOnly"
         }
       }
     ]);
 
-    // Calculate overall progress metrics
+    // Summarize metrics
     let totalCourses = 0;
     let completedCourses = 0;
     let totalProgress = 0;
@@ -898,15 +886,11 @@ export const getStudentDashboard = async (req, res) => {
       courseMaster.enrolledCourses.forEach(course => {
         totalCourses++;
         const userData = course.userCompletionData;
-        
+
         if (userData) {
           totalProgress += userData.progress || 0;
-          
-          if (userData.progress === 100) {
-            completedCourses++;
-          }
-          
-          // Add to recent activity
+          if (userData.progress === 100) completedCourses++;
+
           recentActivity.push({
             courseMasterTitle: courseMaster.course_master_title,
             courseTitle: course.course_title,
@@ -918,10 +902,10 @@ export const getStudentDashboard = async (req, res) => {
       });
     });
 
-    // Sort recent activity by date
+    // Sort by most recent activity
     recentActivity.sort((a, b) => new Date(b.lastActivity) - new Date(a.lastActivity));
 
-    // Get user's discussion activity
+    // Discussion activity
     const discussionActivity = await DiscussionModel.aggregate([
       {
         $match: {
@@ -938,7 +922,8 @@ export const getStudentDashboard = async (req, res) => {
           userPosts: {
             $filter: {
               input: "$posts",
-              cond: { $eq: ["$$this.userId", userId] }
+              as: "post",
+              cond: { $eq: ["$$post.userId", userId] }
             }
           },
           isCreator: { $eq: ["$createdBy", userId] }
@@ -957,9 +942,9 @@ export const getStudentDashboard = async (req, res) => {
         overallProgress: totalCourses > 0 ? Math.round(totalProgress / totalCourses) : 0,
         completionRate: totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0
       },
-      enrolledCourses: enrolledCourses,
-      recentActivity: recentActivity.slice(0, 10), // Last 10 activities
-      discussionActivity: discussionActivity,
+      enrolledCourses,
+      recentActivity: recentActivity.slice(0, 10),
+      discussionActivity,
       metrics: {
         coursesInProgress: totalCourses - completedCourses,
         averageProgress: totalCourses > 0 ? Math.round(totalProgress / totalCourses) : 0,
@@ -967,7 +952,7 @@ export const getStudentDashboard = async (req, res) => {
       }
     };
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: dashboardData,
       message: 'Student dashboard data retrieved successfully'
@@ -975,11 +960,67 @@ export const getStudentDashboard = async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching student dashboard:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Internal server error',
       error: error.message
     });
   }
 };
+;
 
+export const EnrolledtoCourseApi = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    console.log("userID", userId);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User authentication required',
+      });
+    }
+
+    const { courseId } = req.body;
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course ID is required',
+      });
+    }
+
+    const course = await courseModel.findById(courseId);
+    console.log("course 1007", course)
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    if (!course.enrolled_users) course.enrolled_users = [];
+
+    const alreadyEnrolled = course.enrolled_users.some(
+      (user) => user.userId === userId
+    );
+    console.log("already entrolled 1016", alreadyEnrolled)
+    if (alreadyEnrolled) {
+      return res.status(200).json({ message: 'User already enrolled' });
+    }
+
+    course.enrolled_users.push({
+      userId,
+      enrolled_at: new Date(),
+    });
+
+    await course.save();
+
+    // ✅ Send success response
+    return res.status(200).json({
+      success: true,
+      message: 'User enrolled to course successfully',
+    });
+
+  } catch (error) {
+    console.error('Enrollment error:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};

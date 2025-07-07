@@ -4,87 +4,67 @@ import { courseModel } from '../../models/courses.js';
 // Get enrollments report
 export const getEnrollmentsApi = async (req, res) => {
   try {
-    const { 
-      startDate, 
-      endDate, 
-      courseId, 
-      page = 1, 
+    const {
+      startDate,
+      endDate,
+      courseId,
+      page = 1,
       limit = 10,
-      groupBy = 'month' // 'day', 'week', 'month', 'year'
+      groupBy = 'month'
     } = req.query;
 
-    // Build date filter
-    let dateFilter = {};
-    if (startDate || endDate) {
-      dateFilter.createdAt = {};
-      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
-      if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
-    }
-
-    // Get all courses with enrollment data
     let courseQuery = {};
-    if (courseId) {
-      courseQuery._id = courseId;
-    }
+    if (courseId) courseQuery._id = courseId;
 
     const courses = await courseModel.find(courseQuery);
-    
-    // Extract enrollment data
     let enrollmentData = [];
-    
+
     courses.forEach(course => {
-      course.courses.forEach(subCourse => {
-        if (subCourse.completed_by && subCourse.completed_by.length > 0) {
-          subCourse.completed_by.forEach(completion => {
-            enrollmentData.push({
-              courseId: course._id,
-              courseMasterTitle: course.course_master_title,
-              subCourseTitle: subCourse.course_title,
-              userId: completion.userId,
-              username: completion.username,
-              completedAt: completion.completed_at,
-              progress: completion.progress
-            });
+      const enrolledUserIds = course.enrolled_users?.map(u => u.userId) || [];
+
+      course.enrolled_users?.forEach(user => {
+        const userId = user.userId;
+        const enrolledAt = user.enrolled_at;
+
+        course.courses.forEach(subCourse => {
+          const completion = subCourse.completed_by?.find(c => c.userId === userId);
+          enrollmentData.push({
+            courseId: course._id,
+            courseMasterTitle: course.course_master_title,
+            subCourseTitle: subCourse.course_title,
+            userId,
+            username: completion?.username || '',
+            enrolledAt,
+            completedAt: completion?.completed_at || null,
+            progress: completion?.progress || 0
           });
-        }
+        });
       });
     });
 
-    // Apply date filter to enrollment data
+    // Filter by date
     if (startDate || endDate) {
       enrollmentData = enrollmentData.filter(item => {
-        const itemDate = new Date(item.completedAt);
-        if (startDate && itemDate < new Date(startDate)) return false;
-        if (endDate && itemDate > new Date(endDate)) return false;
+        const date = new Date(item.enrolledAt || item.completedAt);
+        if (startDate && date < new Date(startDate)) return false;
+        if (endDate && date > new Date(endDate)) return false;
         return true;
       });
     }
 
-    // Group data based on groupBy parameter
+    // Grouping
     const groupedData = {};
     enrollmentData.forEach(item => {
-      const date = new Date(item.completedAt);
+      const date = new Date(item.enrolledAt || item.completedAt);
       let key;
-      
       switch (groupBy) {
-        case 'day':
-          key = date.toISOString().split('T')[0];
-          break;
-        case 'week':
-          const weekStart = new Date(date);
-          weekStart.setDate(date.getDate() - date.getDay());
-          key = weekStart.toISOString().split('T')[0];
-          break;
-        case 'month':
-          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-          break;
-        case 'year':
-          key = String(date.getFullYear());
-          break;
-        default:
-          key = date.toISOString().split('T')[0];
+        case 'day': key = date.toISOString().split('T')[0]; break;
+        case 'week': const weekStart = new Date(date); weekStart.setDate(date.getDate() - date.getDay()); key = weekStart.toISOString().split('T')[0]; break;
+        case 'month': key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; break;
+        case 'year': key = String(date.getFullYear()); break;
+        default: key = date.toISOString().split('T')[0];
       }
-      
+
       if (!groupedData[key]) {
         groupedData[key] = {
           period: key,
@@ -93,61 +73,40 @@ export const getEnrollmentsApi = async (req, res) => {
           averageProgress: 0
         };
       }
-      
+
       groupedData[key].enrollments++;
-      if (item.progress === 100) {
-        groupedData[key].completions++;
-      }
+      if (item.progress === 100) groupedData[key].completions++;
     });
 
-    // Calculate average progress for each group
+    // Average progress
     Object.keys(groupedData).forEach(key => {
-      const relevantData = enrollmentData.filter(item => {
-        const date = new Date(item.completedAt);
-        let itemKey;
-        
+      const relevant = enrollmentData.filter(item => {
+        const date = new Date(item.enrolledAt || item.completedAt);
+        let k;
         switch (groupBy) {
-          case 'day':
-            itemKey = date.toISOString().split('T')[0];
-            break;
-          case 'week':
-            const weekStart = new Date(date);
-            weekStart.setDate(date.getDate() - date.getDay());
-            itemKey = weekStart.toISOString().split('T')[0];
-            break;
-          case 'month':
-            itemKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            break;
-          case 'year':
-            itemKey = String(date.getFullYear());
-            break;
-          default:
-            itemKey = date.toISOString().split('T')[0];
+          case 'day': k = date.toISOString().split('T')[0]; break;
+          case 'week': const w = new Date(date); w.setDate(date.getDate() - date.getDay()); k = w.toISOString().split('T')[0]; break;
+          case 'month': k = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; break;
+          case 'year': k = String(date.getFullYear()); break;
+          default: k = date.toISOString().split('T')[0];
         }
-        
-        return itemKey === key;
+        return k === key;
       });
-      
-      const totalProgress = relevantData.reduce((sum, item) => sum + item.progress, 0);
-      groupedData[key].averageProgress = relevantData.length > 0 ? 
-        Math.round(totalProgress / relevantData.length) : 0;
+
+      const totalProgress = relevant.reduce((sum, i) => sum + i.progress, 0);
+      groupedData[key].averageProgress = relevant.length > 0 ? Math.round(totalProgress / relevant.length) : 0;
     });
 
-    // Convert to array and sort
-    const reportData = Object.values(groupedData).sort((a, b) => 
-      new Date(a.period) - new Date(b.period)
-    );
-
-    // Pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const reportData = Object.values(groupedData).sort((a, b) => new Date(a.period) - new Date(b.period));
+    const skip = (page - 1) * limit;
     const paginatedData = reportData.slice(skip, skip + parseInt(limit));
-    const totalPages = Math.ceil(reportData.length / parseInt(limit));
+    const totalPages = Math.ceil(reportData.length / limit);
 
-    // Summary statistics
     const totalEnrollments = enrollmentData.length;
-    const totalCompletions = enrollmentData.filter(item => item.progress === 100).length;
-    const completionRate = totalEnrollments > 0 ? 
-      Math.round((totalCompletions / totalEnrollments) * 100) : 0;
+    const totalCompletions = enrollmentData.filter(e => e.progress === 100).length;
+    const completionRate = totalEnrollments > 0 ? Math.round((totalCompletions / totalEnrollments) * 100) : 0;
+    // Unique course count where enrolled_users exist
+    const totalCoursesEnrolled = courses.filter(c => c.enrolled_users?.length > 0).length;
 
     res.status(200).json({
       success: true,
@@ -155,17 +114,17 @@ export const getEnrollmentsApi = async (req, res) => {
         summary: {
           totalEnrollments,
           totalCompletions,
+          totalCoursesEnrolled,
           completionRate: `${completionRate}%`,
-          averageProgress: totalEnrollments > 0 ? 
-            Math.round(enrollmentData.reduce((sum, item) => sum + item.progress, 0) / totalEnrollments) : 0
+          averageProgress: totalEnrollments > 0 ? Math.round(enrollmentData.reduce((sum, i) => sum + i.progress, 0) / totalEnrollments) : 0
         },
         reportData: paginatedData,
         pagination: {
           currentPage: parseInt(page),
           totalPages,
           totalRecords: reportData.length,
-          hasNextPage: parseInt(page) < totalPages,
-          hasPrevPage: parseInt(page) > 1
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
         }
       }
     });
@@ -178,120 +137,94 @@ export const getEnrollmentsApi = async (req, res) => {
   }
 };
 
+
 // Get course performance report
 export const coursePerformanceApi = async (req, res) => {
   try {
-    const { 
-      startDate, 
-      endDate, 
-      page = 1, 
+    const {
+      startDate,
+      endDate,
+      page = 1,
       limit = 10,
-      sortBy = 'enrollments', // 'enrollments', 'completions', 'completion_rate'
+      sortBy = 'enrollments',
       sortOrder = 'desc'
     } = req.query;
 
-    // Get all courses
     const courses = await courseModel.find({});
-    
     let performanceData = [];
-    
+
     courses.forEach(course => {
-      let courseStats = {
+      const userIds = course.enrolled_users?.map(u => u.userId) || [];
+      const courseStats = {
         courseId: course._id,
         courseMasterTitle: course.course_master_title,
         courseDescription: course.course_master_description,
         totalSubCourses: course.courses.length,
-        totalEnrollments: 0,
+        totalEnrollments: userIds.length,
         totalCompletions: 0,
         completionRate: 0,
         averageProgress: 0,
         subCourseStats: []
       };
 
-      let allProgressValues = [];
-      
+      const allProgress = [];
+
       course.courses.forEach(subCourse => {
-        let subCourseEnrollments = 0;
-        let subCourseCompletions = 0;
-        let subCourseProgress = [];
-        
-        if (subCourse.completed_by && subCourse.completed_by.length > 0) {
-          subCourse.completed_by.forEach(completion => {
-            const completionDate = new Date(completion.completed_at);
-            
-            // Apply date filter
-            if (startDate && completionDate < new Date(startDate)) return;
-            if (endDate && completionDate > new Date(endDate)) return;
-            
-            subCourseEnrollments++;
-            allProgressValues.push(completion.progress);
-            subCourseProgress.push(completion.progress);
-            
-            if (completion.progress === 100) {
-              subCourseCompletions++;
-            }
-          });
-        }
-        
+        let enrollments = 0;
+        let completions = 0;
+        const progressValues = [];
+
+        subCourse.completed_by?.forEach(c => {
+          const completedAt = new Date(c.completed_at);
+          if (startDate && completedAt < new Date(startDate)) return;
+          if (endDate && completedAt > new Date(endDate)) return;
+
+          if (userIds.includes(c.userId)) {
+            enrollments++;
+            progressValues.push(c.progress);
+            allProgress.push(c.progress);
+            if (c.progress === 100) completions++;
+          }
+        });
+
         courseStats.subCourseStats.push({
           title: subCourse.course_title,
-          enrollments: subCourseEnrollments,
-          completions: subCourseCompletions,
-          completionRate: subCourseEnrollments > 0 ? 
-            Math.round((subCourseCompletions / subCourseEnrollments) * 100) : 0,
-          averageProgress: subCourseProgress.length > 0 ? 
-            Math.round(subCourseProgress.reduce((sum, p) => sum + p, 0) / subCourseProgress.length) : 0
+          enrollments,
+          completions,
+          completionRate: enrollments > 0 ? Math.round((completions / enrollments) * 100) : 0,
+          averageProgress: progressValues.length > 0 ? Math.round(progressValues.reduce((sum, p) => sum + p, 0) / progressValues.length) : 0
         });
-        
-        courseStats.totalEnrollments += subCourseEnrollments;
-        courseStats.totalCompletions += subCourseCompletions;
+
+        courseStats.totalCompletions += completions;
       });
-      
-      courseStats.completionRate = courseStats.totalEnrollments > 0 ? 
-        Math.round((courseStats.totalCompletions / courseStats.totalEnrollments) * 100) : 0;
-      
-      courseStats.averageProgress = allProgressValues.length > 0 ? 
-        Math.round(allProgressValues.reduce((sum, p) => sum + p, 0) / allProgressValues.length) : 0;
-      
+
+      courseStats.completionRate = courseStats.totalEnrollments > 0
+        ? Math.round((courseStats.totalCompletions / courseStats.totalEnrollments) * 100)
+        : 0;
+
+      courseStats.averageProgress = allProgress.length > 0
+        ? Math.round(allProgress.reduce((sum, p) => sum + p, 0) / allProgress.length)
+        : 0;
+
       performanceData.push(courseStats);
     });
 
-    // Sort data
+    // Sort
     performanceData.sort((a, b) => {
-      let aVal, bVal;
-      
-      switch (sortBy) {
-        case 'enrollments':
-          aVal = a.totalEnrollments;
-          bVal = b.totalEnrollments;
-          break;
-        case 'completions':
-          aVal = a.totalCompletions;
-          bVal = b.totalCompletions;
-          break;
-        case 'completion_rate':
-          aVal = a.completionRate;
-          bVal = b.completionRate;
-          break;
-        default:
-          aVal = a.totalEnrollments;
-          bVal = b.totalEnrollments;
-      }
-      
-      return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+      const valA = a[sortBy === 'completion_rate' ? 'completionRate' : sortBy === 'completions' ? 'totalCompletions' : 'totalEnrollments'];
+      const valB = b[sortBy === 'completion_rate' ? 'completionRate' : sortBy === 'completions' ? 'totalCompletions' : 'totalEnrollments'];
+      return sortOrder === 'desc' ? valB - valA : valA - valB;
     });
 
-    // Pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (page - 1) * limit;
     const paginatedData = performanceData.slice(skip, skip + parseInt(limit));
-    const totalPages = Math.ceil(performanceData.length / parseInt(limit));
+    const totalPages = Math.ceil(performanceData.length / limit);
 
-    // Overall statistics
     const totalCourses = performanceData.length;
-    const totalEnrollments = performanceData.reduce((sum, course) => sum + course.totalEnrollments, 0);
-    const totalCompletions = performanceData.reduce((sum, course) => sum + course.totalCompletions, 0);
-    const overallCompletionRate = totalEnrollments > 0 ? 
-      Math.round((totalCompletions / totalEnrollments) * 100) : 0;
+    const totalEnrollments = performanceData.reduce((sum, c) => sum + c.totalEnrollments, 0);
+    const totalCompletions = performanceData.reduce((sum, c) => sum + c.totalCompletions, 0);
+    const overallCompletionRate = totalEnrollments > 0 ? Math.round((totalCompletions / totalEnrollments) * 100) : 0;
+    const totalCoursesEnrolled = performanceData.filter(course => course.totalEnrollments > 0).length;
 
     res.status(200).json({
       success: true,
@@ -300,6 +233,7 @@ export const coursePerformanceApi = async (req, res) => {
           totalCourses,
           totalEnrollments,
           totalCompletions,
+          totalCoursesEnrolled,
           overallCompletionRate: `${overallCompletionRate}%`
         },
         performanceData: paginatedData,
@@ -307,8 +241,8 @@ export const coursePerformanceApi = async (req, res) => {
           currentPage: parseInt(page),
           totalPages,
           totalRecords: performanceData.length,
-          hasNextPage: parseInt(page) < totalPages,
-          hasPrevPage: parseInt(page) > 1
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
         }
       }
     });

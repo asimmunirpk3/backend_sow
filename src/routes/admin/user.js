@@ -4,7 +4,7 @@ import {
   editUserApi,
   deleteUserApi,
   assignRoleApi,
-  adminSettigApi,
+
   getAdminDetailsApi,
 } from '../../controllers/admin/user.js';
 import auth from '../../middleware/auth.js';
@@ -18,6 +18,6 @@ router.post('/:id/assign-role', auth, assignRoleApi);
 
 // {globall setting}
 router.get('/get-admin-details', auth , getAdminDetailsApi)
-router.put('/admin-setting-api', auth , adminSettigApi )
+// router.put('/admin-setting-api', auth , adminSettigApi )
 
 export default router;

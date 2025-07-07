@@ -11,7 +11,8 @@ import {
   GetDiscussionsApi,
   getFeaturedCourses,
   getCourseCategories,
-  getStudentDashboard
+  getStudentDashboard,
+  EnrolledtoCourseApi
 } from '../controllers/courses.js';
 import auth from '../middleware/auth.js';
 
@@ -21,6 +22,8 @@ router.get('/courses-listing', courselistingApi);
 router.get('/course/:id', getcoursesbyId);
 router.post('/course/:id/module/:moduleId/complete', modulecompleApi);
 router.post('/course/student/progress', studentprogressApi);
+
+router.post('/course/student/enrollment', auth, EnrolledtoCourseApi)
 // {discussion api}
 router.post('/course/:id/discussions', auth, CreateDiscussionApi);
 router.post('/discussions/:discussionId/posts',auth, CreatePostApi)
