@@ -157,7 +157,7 @@ export const userSettigApi = async (req, res) => {
       ...(lastName && { lastName }),
     };
 
-    if (password.length <= 8) {
+    if (password.length < 8) {
       return res
         .status(400)
         .json({ status: "error", message: "Password must be atleast 8 characters long" });
