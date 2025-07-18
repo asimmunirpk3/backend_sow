@@ -4,7 +4,11 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
-import routes from './routes/index.js';
+import routes from './routes/index.js'
+import passport from 'passport';
+import session from 'express-session';;
+import './utils/config.js'; // import your passport config
+
 
 const app = express();
 dotenv.config();
@@ -16,6 +20,12 @@ app.use(morgan(logFormat));
 app.use(cors());
 app.use(bodyParser.json({ limit: '30mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
+
+app.use(session({
+  secret: 'yourSecret',
+  resave: false,
+  saveUninitialized: true,
+}));
 
 app.use(routes);
 app.get('/', (req, res) => {

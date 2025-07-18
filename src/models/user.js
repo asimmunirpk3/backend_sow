@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   facebookId: { type: String },
   password: {
     type: String,
-    minlength: [8, 'Password must be at least 8 characters long'],
+    minlength: [8, 'Password must be apt least 8 characters long'],
   },
   role: {
     type: String,

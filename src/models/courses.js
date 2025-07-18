@@ -6,6 +6,12 @@ const courseSchema = new mongoose.Schema(
     course_master_title: String,
     course_master_description: String,
     course_objectives: [String],
+    enrolled_users: [
+      {
+        userId: String,
+        enrolled_at: { type: Date, default: Date.now },
+      },
+    ],
     courses: [
       {
         row_number: Number,
