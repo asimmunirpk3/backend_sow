@@ -10,7 +10,6 @@ import {
   ToggleLikeApi,
   GetDiscussionsApi,
   getFeaturedCourses,
-  getCourseCategories,
   getStudentDashboard,
   EnrolledtoCourseApi
 } from '../controllers/courses.js';
@@ -32,7 +31,7 @@ router.put('/discussions/:discussionId/posts/:postId/like', auth, ToggleLikeApi)
 router.get('/api/courses/:id/discussions', GetDiscussionsApi)
 // {discussion api}
 router.get('/top-courses', getFeaturedCourses);
-router.get('/course-categories', getCourseCategories);
+// router.get('/course-categories', getCourseCategories);
 router.get('/student/dashboard', auth, getStudentDashboard);
 
 export default router;

@@ -15,4 +15,4 @@ const courseCategorySchema = new mongoose.Schema({
   }
 });
 
-const CourseCategoryModel = mongoose.model('CourseCategory', courseCategorySchema);
+export const CourseCategoryModel = mongoose.model('CourseCategory', courseCategorySchema);

@@ -1,3 +1,4 @@
+import { CourseCategoryModel } from '../../models/courseCategory.js';
 import { courseModel } from '../../models/courses.js';
 
 // Get all courses
@@ -45,13 +46,6 @@ export const getCoursebyIdApi = async (req, res) => {
   try {
     const { id } = req.params;
     
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid course ID'
-      });
-    }
-    
     const course = await courseModel.findById(id);
     if (!course) {
       return res.status(404).json({
@@ -78,13 +72,6 @@ export const editCourseApi = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid course ID'
-      });
-    }
     
     const course = await courseModel.findById(id);
     if (!course) {
@@ -118,13 +105,6 @@ export const editCourseApi = async (req, res) => {
 export const deleteCourseApi = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid course ID'
-      });
-    }
     
     const course = await courseModel.findById(id);
     if (!course) {
