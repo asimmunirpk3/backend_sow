@@ -2,6 +2,15 @@ import mongoose from 'mongoose';
 
 const courseSchema = new mongoose.Schema(
   {
+    course_category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'CourseCategory',
+      required: true,
+    },
+    course_name: {
+      type: String
+    },
+
     chat_input: String,
     course_master_title: String,
     course_master_description: String,
