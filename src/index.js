@@ -16,8 +16,15 @@ dotenv.config();
 const logFormat = process.env.NODE_ENV === 'development' ? 'dev' : 'combined';
 
 app.use(morgan(logFormat));
+const corsOptions = {
+  origin: function (origin, callback) {
+    callback(null, true); // Allow all origins (for testing)
+  },
+  credentials: true,
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json({ limit: '30mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 
