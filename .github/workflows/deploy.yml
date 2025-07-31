@@ -1,0 +1,39 @@
+name: Deploy Node.js App with PM2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/backend_sow
+            git pull origin main
+
+            # Recreate the .env file
+            cat <<EOF > .env
+            CONNECTION_URL=${{ secrets.CONNECTION_URL }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            PORT=${{ secrets.PORT }}
+            NODE_ENV=${{ secrets.NODE_ENV }}
+            JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+            BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            EOF
+
+            # Restart the app with PM2
+            pm2 restart my-app
