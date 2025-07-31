@@ -35,5 +35,8 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             EOF
 
+            # Install dependencies
+            pnpm install 
+            
             # Restart the app with PM2
             pm2 restart my-app
