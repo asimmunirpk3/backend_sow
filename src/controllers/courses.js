@@ -1,6 +1,7 @@
 import { courseModel } from "../models/courses.js";
 import { DiscussionModel } from "../models/discussions.js";
 import { userModel } from "../models/user.js";
+import axios from 'axios'
 
 export const courselistingApi = async (req, res) => {
   try {
@@ -891,5 +892,137 @@ export const EnrolledtoCourseApi = async (req, res) => {
   } catch (error) {
     console.error('Enrollment error:', error);
     return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const OverallSerachApi = async (req, res) => {
+  try {
+    const { search } = req.body;
+    console.log("search", search);
+    if (!search) {
+      return res.status(400).json({ error: 'Search is Required' });
+    }
+
+    const aiApiResponse = await axios.post(
+      "https://chicagou.app.n8n.cloud/webhook/search",
+      { search },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        timeout: 10000, // optional: 10 second timeout
+      }
+    );
+
+    console.log("aiApiResponse", aiApiResponse.data);
+
+    return res.status(200).json(aiApiResponse.data);
+
+  } catch (error) {
+    console.error("Error in OverallSerachApi:", error?.message || error);
+
+    // Axios-specific handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      return res.status(error.response.status).json({
+        error: error.response.data || 'Upstream API error',
+      });
+    } else if (error.request) {
+      // The request was made but no response was received
+      return res.status(504).json({
+        error: 'No response from upstream service',
+      });
+    } else {
+      // Something else caused the error
+      return res.status(500).json({
+        error: 'Internal Server Error',
+      });
+    }
+  }
+};
+
+export const OverallInsertApi = async (req, res) => {
+  try {
+
+
+    const aiApiResponse = await axios.post(
+      "https://chicagou.app.n8n.cloud/webhook/insert",
+
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        timeout: 10000, // optional: 10 second timeout
+      }
+    );
+    return res.status(200).json(aiApiResponse.data);
+
+  } catch (error) {
+    console.error("Error in OverallInsertApi:", error?.message || error);
+
+    // Axios-specific handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      return res.status(error.response.status).json({
+        error: error.response.data || 'Upstream API error',
+      });
+    } else if (error.request) {
+      // The request was made but no response was received
+      return res.status(504).json({
+        error: 'No response from upstream service',
+      });
+    } else {
+      // Something else caused the error
+      return res.status(500).json({
+        error: 'Internal Server Error',
+      });
+    }
+  }
+};
+
+export const OverallCurateApi = async (req, res) => {
+  try {
+    const { course } = req.body;
+    console.log("course", course);
+    if (!course) {
+      return res.status(400).json({ error: 'Search is Required' });
+    }
+
+
+    const aiApiResponse = await axios.post(
+      "https://chicagou.app.n8n.cloud/webhook/curate",
+      { course },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        timeout: 10000, // optional: 10 second timeout
+      }
+    );
+    return res.status(200).json(aiApiResponse.data);
+
+  } catch (error) {
+    console.error("Error in OverallInsertApi:", error?.message || error);
+
+    // Axios-specific handling
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      return res.status(error.response.status).json({
+        error: error.response.data || 'Upstream API error',
+      });
+    } else if (error.request) {
+      // The request was made but no response was received
+      return res.status(504).json({
+        error: 'No response from upstream service',
+      });
+    } else {
+      // Something else caused the error
+      return res.status(500).json({
+        error: 'Internal Server Error',
+      });
+    }
   }
 };

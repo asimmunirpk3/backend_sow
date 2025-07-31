@@ -11,7 +11,10 @@ import {
   GetDiscussionsApi,
   getFeaturedCourses,
   getStudentDashboard,
-  EnrolledtoCourseApi
+  EnrolledtoCourseApi,
+  OverallSerachApi,
+  OverallInsertApi,
+  OverallCurateApi
 } from '../controllers/courses.js';
 import auth from '../middleware/auth.js';
 
@@ -33,5 +36,10 @@ router.get('/api/courses/:id/discussions', GetDiscussionsApi)
 router.get('/top-courses', getFeaturedCourses);
 // router.get('/course-categories', getCourseCategories);
 router.get('/student/dashboard', auth, getStudentDashboard);
+router.post('/search', OverallSerachApi)
+router.post('/insert', OverallInsertApi)
+router.post('/curate' , OverallCurateApi)
+
+
 
 export default router;
