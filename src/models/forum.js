@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 
 const forumSchema = new mongoose.Schema({
-  courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Courses', required: true },
-  subCourseId: { type: mongoose.Schema.Types.ObjectId }, 
   title: { type: String, required: true },
   description: String,
   category: { type: String, enum: ['General', 'Lessons', 'Assignment', 'Discussion'], default: 'General' },

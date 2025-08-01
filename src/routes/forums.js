@@ -1,12 +1,12 @@
 import express from 'express';
 import {
  postForumsApi,
- getForumsApibyCourseId
+ getForumsApi
 } from '../controllers/forums.js';
 
 const router = express.Router();
 
-router.post('/:courseId/add-forums', postForumsApi);
+router.post('/add-forums', postForumsApi);
 // In routes/courses.js
-router.get('/:courseId/get-forums', getForumsApibyCourseId);
+router.get('/get-forums', getForumsApi);
 export default router;

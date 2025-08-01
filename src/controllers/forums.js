@@ -1,21 +1,10 @@
-import { courseModel } from "../models/courses.js";
 import { ForumModel } from "../models/forum.js";
 
 export const postForumsApi = async (req, res) => {
     try {
-        const { courseId } = req.params;
         const { title, description, category, userId  } = req.body;
 
-        const course = await courseModel.findById(courseId);
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: 'Course not found'
-            });
-        }
-
         const newForum = new ForumModel({
-            courseId,
             title,
             description,
             category: category || 'General',
@@ -41,15 +30,13 @@ export const postForumsApi = async (req, res) => {
     }
 };
 
-// router.get('/courses/:courseId/forums',
 
- export const getForumsApibyCourseId = async (req, res) => {
+ export const getForumsApi= async (req, res) => {
   try {
-    const { courseId } = req.params;
     const { category, limit = 10, page = 1 } = req.query;
 
     // Build query
-    let query = { courseId, isActive: true };
+    let query = { isActive: true };
     if (category) {
       query.category = category;
     }
@@ -59,7 +46,6 @@ export const postForumsApi = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .populate('courseId', 'course_master_title');
 
     const totalForums = await ForumModel.countDocuments(query);
 
