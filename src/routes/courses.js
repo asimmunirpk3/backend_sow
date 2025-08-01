@@ -35,6 +35,7 @@ router.get('/api/courses/:id/discussions', GetDiscussionsApi)
 // {discussion api}
 router.get('/top-courses', getFeaturedCourses);
 // router.get('/course-categories', getCourseCategories);
+
 router.get('/student/dashboard', auth, getStudentDashboard);
 router.post('/search', OverallSerachApi)
 router.post('/insert', OverallInsertApi)
