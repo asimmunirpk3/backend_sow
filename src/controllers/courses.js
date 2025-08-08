@@ -62,7 +62,7 @@ export const getcoursesbyId = async (req, res) => {
 export const modulecompleApi = async (req, res) => {
   try {
     const { id, moduleId } = req.params;
-    const { userId, username, progress = 100 } = req.body;
+    const { userId, progress = 100 } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -152,7 +152,6 @@ export const modulecompleApi = async (req, res) => {
         module: updatedCourse.courses[moduleIndex],
         completion_info: {
           user_id: userId,
-          username: username || 'Unknown User',
           completed_at: new Date(),
           progress: progress
         },
