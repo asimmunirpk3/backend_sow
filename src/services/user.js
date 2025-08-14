@@ -20,14 +20,6 @@ export const creatUserData = async (data) => {
   }
 };
 
-// export const updateUserPasswordData = async (id, password) => {
-//   try {
-//     return await userModel.findByIdAndUpdate(id, { password: password });
-//   } catch (error) {
-//     return false;
-//   }
-// };
-
 export const getUserData = async (data) => {
   return {
     id: data._id,

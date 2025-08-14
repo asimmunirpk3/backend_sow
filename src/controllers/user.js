@@ -66,8 +66,7 @@ export const loginApi = async (req, res) => {
         message: 'All fields are required',
       });
     }
-
-  
+    
     const user = await userModel.findOne({ email });
     
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -152,7 +151,7 @@ export const userSettigApi = async (req, res) => {
 
     const { firstName, lastName, password } =
       req.body;
-    console.log("firdt", firstName)
+  
 
     const updateData = {
       ...(firstName && { firstName }),

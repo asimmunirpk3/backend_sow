@@ -1,21 +1,15 @@
-import express from 'express';
+import express, { Router } from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import morgan from 'morgan';
 import routes from './routes/index.js'
-import passport from 'passport';
 import session from 'express-session';;
 import './utils/config.js'; // import your passport config
-
 
 const app = express();
 dotenv.config();
 /* eslint-disable no-undef */
-const logFormat = process.env.NODE_ENV === 'development' ? 'dev' : 'combined';
-
-app.use(morgan(logFormat));
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '30mb', extended: true }));
@@ -81,9 +75,8 @@ app.get('/', (req, res) => {
     </head>
     <body>
       <div class="container">
-        <h1>🚀 SOW SERVER </h1>
+        <h1>🚀 Chicago U SERVER </h1>
         <p>The server is up and running smoothly.</p>
-        <p>Welcome to the Statement of Work management API.</p>
         <a href="https://your-frontend-url.com" target="_blank">Open SOW Dashboard</a>
       </div>
     </body>
@@ -94,6 +87,8 @@ app.get('/', (req, res) => {
 /* eslint-disable no-undef */   
 const CONNECTION_URL = process.env.CONNECTION_URL;
 const PORT = process.env.PORT || 3333;
+
+// mongodb connection 
 
 mongoose
   .connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
