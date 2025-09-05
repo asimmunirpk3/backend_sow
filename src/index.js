@@ -10,8 +10,18 @@ import './utils/config.js'; // import your passport config
 const app = express();
 dotenv.config();
 /* eslint-disable no-undef */
+const logFormat = process.env.NODE_ENV === 'development' ? 'dev' : 'combined';
 
-app.use(cors());
+app.use(morgan(logFormat));
+const corsOptions = {
+  origin: function (origin, callback) {
+    callback(null, true); // Allow all origins (for testing)
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json({ limit: '30mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 app.use("/uploads", express.static("uploads"));
