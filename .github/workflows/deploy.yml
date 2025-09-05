@@ -33,10 +33,11 @@ jobs:
             BCRYPT_SALT_ROUNDS=${{ secrets.BCRYPT_SALT_ROUNDS }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            BASE_URL=${{ secrets.BASE_URL }}
             EOF
 
             # Install dependencies
             pnpm install 
-            
+
             # Restart the app with PM2
             pm2 restart my-app
