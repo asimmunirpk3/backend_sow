@@ -6,6 +6,7 @@ import express from 'express';
 import adminCourses from '../routes/admin/course.js'
 import adminReports from '../routes/admin/reports.js'
 import adminDiscussion from '../routes/admin/discussion.js'
+import adminBlog from '../routes/admin/blog.js'
 
 const router = express.Router();
 
@@ -37,6 +38,10 @@ const defaultRoutes = [
    { 
     path:'/admin/discussion',
     route: adminDiscussion
+  },
+  { 
+    path:'/admin/blog',
+    route: adminBlog
   }
   
 ];
