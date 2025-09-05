@@ -1,4 +1,6 @@
 import Blog from "../../models/Blog.js";
+import { CourseCategoryModel } from "../../models/courseCategory.js";
+import { userModel } from "../../models/user.js";
 
 const baseUrl = process.env.BASE_URL
 
@@ -79,30 +81,25 @@ export const getBlogById = async (req, res) => {
 };
 
 export const createBlog = async (req, res) => {
-    console.log("formData", req.body)
-    try {
+    try {   
         const {
             title,
             content,
-            author,
-            category,
+            categoryId,
             tags,
-            status
         } = req.body;
-
-        // Validation
-        if (!title || !content || !author) {
-            return res.status(400).json({
-                success: false,
-                message: 'Title, content, and author are required'
-            });
+        const user = await userModel
+            .findById(req.user.id)
+        const category = await CourseCategoryModel.findById(categoryId);
+        if (!category) {
+            return res.status(400).json({ message: 'Invalid category ID' });
         }
 
         const newBlog = new Blog({
             title,
             content,
-            author,
-            category,
+            author: user.firstName,
+            category: category.name,
             tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
             featuredImage: req.file ? `${baseUrl}/uploads/blogs/${req.file.filename}` : null,
         });

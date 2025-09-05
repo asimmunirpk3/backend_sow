@@ -13,7 +13,7 @@ import {
   getBlogsByCategory
 } from '../../controllers/admin/blog.js';
 import { upload } from '../../middleware/multer.js';
-
+import auth from '../../middleware/auth.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get('/author/:author', getBlogsByAuthor);
 router.get('/category/:category', getBlogsByCategory);
 router.get('/', getAllBlogs);
 router.get('/:id', getBlogById);
-router.post('/', upload.single("featuredImage") ,createBlog);
+router.post('/', auth, upload.single("featuredImage") ,createBlog);
 router.put('/:id', upload.single("featuredImage"), updateBlog);
 router.delete('/:id', deleteBlog);
 
