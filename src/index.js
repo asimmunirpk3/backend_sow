@@ -10,9 +10,7 @@ import './utils/config.js'; // import your passport config
 const app = express();
 dotenv.config();
 /* eslint-disable no-undef */
-const logFormat = process.env.NODE_ENV === 'development' ? 'dev' : 'combined';
 
-app.use(morgan(logFormat));
 const corsOptions = {
   origin: function (origin, callback) {
     callback(null, true); // Allow all origins (for testing)
