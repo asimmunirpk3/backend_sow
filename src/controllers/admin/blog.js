@@ -3,6 +3,7 @@ import { CourseCategoryModel } from "../../models/courseCategory.js";
 import { userModel } from "../../models/user.js";
 
 const baseUrl = process.env.BASE_URL
+console.log("baseUrl")
 
 export const getAllBlogs = async (req, res) => {
     try {
