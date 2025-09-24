@@ -894,6 +894,51 @@ export const EnrolledtoCourseApi = async (req, res) => {
   }
 };
 
+// POST /course/student/unenrollment
+export const UnenrollFromCourseApi = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User authentication required" });
+    }
+
+    const { courseId } = req.body;
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "Course ID is required" });
+    }
+
+    // Make sure course exists first (optional but nicer error)
+    const exists = await courseModel.exists({ _id: courseId });
+    if (!exists) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    // Atomic remove from array
+    const result = await courseModel.updateOne(
+      { _id: courseId },
+      { $pull: { enrolled_users: { userId } } }
+    );
+
+    // result.modifiedCount === 1 means we actually removed something
+    if (result.modifiedCount === 0) {
+      return res.status(200).json({
+        success: false,
+        message: "User was not enrolled in this course",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User unenrolled from course successfully",
+      data: { courseId, userId }
+    });
+  } catch (error) {
+    console.error("Unenrollment error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
 export const OverallSerachApi = async (req, res) => {
   try {
     const { search } = req.body;

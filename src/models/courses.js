@@ -9,6 +9,9 @@ const courseSchema = new mongoose.Schema(
     course_name: {
       type: String
     },
+    course_category_image: {
+      type: String
+    },
 
     chat_input: String,
     course_master_title: String,

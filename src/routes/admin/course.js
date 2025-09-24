@@ -9,6 +9,7 @@ import {
     getCourseCategoriesApi
 } from '../../controllers/admin/course.js';
 import auth from '../../middleware/auth.js';
+import { upload } from '../../middleware/multer.js';
 
 const PREDEFINED_CATEGORIES = [
     'Technology & Data',
@@ -41,6 +42,6 @@ router.post('/seed-categories', async (req, res) => {
     }
 });
 router.get('/course-categories', auth, getCourseCategoriesApi)
-router.post('/course-categories', auth, addCourseCategoriesApi)
+router.post('/course-categories', upload.single("course-image"),auth, addCourseCategoriesApi)
 
 export default router;

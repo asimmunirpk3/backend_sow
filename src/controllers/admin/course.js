@@ -1,6 +1,10 @@
 import { CourseCategoryModel } from '../../models/courseCategory.js';
 import { courseModel } from '../../models/courses.js';
 
+const baseUrl = process.env.BASE_URL
+console.log("baseUrl")
+
+
 // Get all courses
 export const getAllCoursesApi = async (req, res) => {
   try {
@@ -146,6 +150,9 @@ export const addCourseCategoriesApi = async (req, res) => {
 
     course.course_category = course_category_id;
     course.course_name = category.name
+    course.course_category_image =  req.file ? `${baseUrl}/uploads/blogs/${req.file.filename}` : null,
+
+
     await course.save();
 
     res.status(200).json({

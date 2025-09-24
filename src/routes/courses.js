@@ -14,7 +14,8 @@ import {
   EnrolledtoCourseApi,
   OverallSerachApi,
   OverallInsertApi,
-  OverallCurateApi
+  OverallCurateApi,
+  UnenrollFromCourseApi
 } from '../controllers/courses.js';
 import auth from '../middleware/auth.js';
 
@@ -26,6 +27,8 @@ router.post('/course/:id/module/:moduleId/complete', modulecompleApi);
 router.post('/course/student/progress', studentprogressApi);
 
 router.post('/course/student/enrollment', auth, EnrolledtoCourseApi)
+router.post('/course/student/unenrollment', auth, UnenrollFromCourseApi);
+
 // {discussion api}
 router.post('/course/:id/discussions', auth, CreateDiscussionApi);
 router.post('/discussions/:discussionId/posts',auth, CreatePostApi)
