@@ -143,6 +143,9 @@ export const addCourseCategoriesApi = async (req, res) => {
       return res.status(400).json({ message: 'Invalid category ID' });
     }
 
+    category.course_category_image = req.file ? `${baseUrl}/uploads/blogs/${req.file.filename}` : null
+    await category.save();
+
     const course = await courseModel.findById(course_master_Id);
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
@@ -150,10 +153,10 @@ export const addCourseCategoriesApi = async (req, res) => {
 
     course.course_category = course_category_id;
     course.course_name = category.name
-    course.course_category_image =  req.file ? `${baseUrl}/uploads/blogs/${req.file.filename}` : null,
+    course.course_category_image = req.file ? `${baseUrl}/uploads/blogs/${req.file.filename}` : null,
 
 
-    await course.save();
+      await course.save();
 
     res.status(200).json({
       message: 'Course category updated successfully',

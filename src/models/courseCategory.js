@@ -28,6 +28,9 @@ const courseCategorySchema = new mongoose.Schema({
     trim: true,
     maxlength: 500
   },
+  course_category_image: {
+    type: String
+  },
   isActive: {
     type: Boolean,
     default: true
